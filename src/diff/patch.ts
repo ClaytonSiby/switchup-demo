@@ -23,22 +23,21 @@ export async function generatePatch(
   outputDir:    string,
   testedItems?: number,
 ): Promise<PatchResult> {
-  const providersFilePath = path.resolve(__dirname, "../../config/providers.json");
-  const originalSource = fs.readFileSync(providersFilePath, "utf-8");
-
-  const providers = JSON.parse(originalSource) as Provider[];
-  const providerIdx = providers.findIndex((p) => p.id === provider.id);
-  if (providerIdx === -1) {
-    throw new Error(`Provider "${provider.id}" not found in providers.json`);
-  }
-  const fieldIdx = providers[providerIdx].fields.findIndex((f) => f.name === field);
-  if (fieldIdx === -1) {
+  const fieldDef = provider.fields.find((f) => f.name === field);
+  if (!fieldDef) {
     throw new Error(`Field "${field}" not found on provider "${provider.id}"`);
   }
 
-  const oldSelector = providers[providerIdx].fields[fieldIdx].selector;
-  providers[providerIdx].fields[fieldIdx].selector = proposal.new_selector;
-  const proposedSource = JSON.stringify(providers, null, 2) + "\n";
+  const oldSelector = fieldDef.selector;
+  const originalSource = JSON.stringify([provider], null, 2) + "\n";
+
+  const healedProvider = {
+    ...provider,
+    fields: provider.fields.map((f) =>
+      f.name === field ? { ...f, selector: proposal.new_selector } : f
+    ),
+  };
+  const proposedSource = JSON.stringify([healedProvider], null, 2) + "\n";
 
   const rawPatch = createTwoFilesPatch(
     "a/config/providers.json",

@@ -5,7 +5,10 @@ import { chromium } from "playwright";
 import { runPipeline, PipelineEvent } from "./pipeline";
 import {
   loadProviders,
-  saveProviders,
+  getProvider,
+  createProvider,
+  updateProvider,
+  deleteProvider,
   generateId,
   ProviderSchema,
   Provider,
@@ -22,47 +25,40 @@ app.use(express.json());
 
 // ── Providers ────────────────────────────────────────────────────────────────
 
-app.get("/api/providers", (_req, res: Response) => {
-  res.json(loadProviders());
+app.get("/api/providers", async (_req, res: Response) => {
+  res.json(await loadProviders());
 });
 
-app.post("/api/providers", (req: Request, res: Response) => {
+app.post("/api/providers", async (req: Request, res: Response) => {
   const body = req.body as unknown;
   const parsed = ProviderSchema.omit({ id: true }).safeParse(body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.issues });
     return;
   }
-  const providers = loadProviders();
   const provider: Provider = { id: generateId(parsed.data.name), ...parsed.data };
-  providers.push(provider);
-  saveProviders(providers);
+  await createProvider(provider);
   res.status(201).json(provider);
 });
 
-app.put("/api/providers/:id", (req: Request, res: Response) => {
-  const { id } = req.params;
+app.put("/api/providers/:id", async (req: Request, res: Response) => {
+  const id = req.params["id"] as string;
   const body = req.body as unknown;
   const parsed = ProviderSchema.safeParse(body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.issues });
     return;
   }
-  const providers = loadProviders();
-  const idx = providers.findIndex((p) => p.id === id);
-  if (idx === -1) { res.status(404).json({ error: "Not found" }); return; }
-  providers[idx] = parsed.data;
-  saveProviders(providers);
-  res.json(providers[idx]);
+  const provider = { ...parsed.data, id };
+  const found = await updateProvider(provider);
+  if (!found) { res.status(404).json({ error: "Not found" }); return; }
+  res.json(provider);
 });
 
-app.delete("/api/providers/:id", (req: Request, res: Response) => {
-  const { id } = req.params;
-  const providers = loadProviders();
-  const idx = providers.findIndex((p) => p.id === id);
-  if (idx === -1) { res.status(404).json({ error: "Not found" }); return; }
-  providers.splice(idx, 1);
-  saveProviders(providers);
+app.delete("/api/providers/:id", async (req: Request, res: Response) => {
+  const id = req.params["id"] as string;
+  const found = await deleteProvider(id);
+  if (!found) { res.status(404).json({ error: "Not found" }); return; }
   res.status(204).end();
 });
 
@@ -129,10 +125,9 @@ app.get("/api/run", async (req: Request, res: Response) => {
   const providerId = (req.query["providerId"] as string | undefined) ?? "";
   const demo = req.query["demo"] === "true";
 
-  const providers = loadProviders();
   const provider = providerId
-    ? providers.find((p) => p.id === providerId)
-    : providers[0];
+    ? await getProvider(providerId)
+    : (await loadProviders())[0];
 
   if (!provider) {
     res.status(400).json({ error: "No provider found. Add one in the config panel." });
