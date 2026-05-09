@@ -4,3 +4,5 @@ output/
 .env
 *.patch
 .vscode/
+config/providers.json
+.claude/settings.local.json
