@@ -86,6 +86,7 @@ input.demo-input { display: none; }
   justify-content: center; cursor: pointer; transition: border-color 0.15s, color 0.15s; font-size: 14px;
 }
 .icon-btn:hover { border-color: var(--border-hi); color: var(--text); }
+.icon-btn-help { font-size: 13px; font-weight: 600; color: var(--indigo); }
 
 .status-pill {
   display: flex; align-items: center; gap: 6px;
@@ -468,6 +469,53 @@ input.demo-input { display: none; }
 }
 .dp-copy:hover { color: var(--text); border-color: var(--border-hi); }
 
+/* ── Guide sections ── */
+.guide-section { border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; }
+.guide-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; cursor: pointer; -webkit-user-select: none; user-select: none;
+  transition: background 0.15s;
+}
+.guide-section-head:hover { background: rgba(255,255,255,0.03); }
+.guide-section-title { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 9px; }
+.guide-section-icon { font-size: 15px; width: 22px; text-align: center; flex-shrink: 0; }
+.guide-section-arrow { font-size: 10px; color: var(--dim); transition: transform 0.2s; }
+.guide-section.open .guide-section-arrow { transform: rotate(90deg); }
+.guide-section-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
+.guide-section.open .guide-section-body { display: block; }
+
+.guide-p { font-size: 13px; color: var(--muted); line-height: 1.7; margin-top: 12px; }
+.guide-p:first-child { margin-top: 10px; }
+.guide-p strong { color: var(--text); font-weight: 500; }
+.guide-p code { font-family: var(--mono); font-size: 11px; background: var(--raised); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; color: var(--cyan); }
+
+.guide-step-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.guide-step { display: flex; gap: 10px; align-items: flex-start; }
+.guide-step-num {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--indigo-dim); border: 1px solid rgba(129,140,248,0.3);
+  color: var(--indigo); font-size: 10px; font-weight: 700; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; margin-top: 2px;
+}
+.guide-step-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.guide-step-text strong { color: var(--text); font-weight: 500; }
+
+.guide-pipeline-row { display: flex; gap: 10px; align-items: flex-start; margin-top: 8px; }
+.guide-pipe-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+.guide-pipe-dot-cyan   { background: var(--cyan); }
+.guide-pipe-dot-green  { background: var(--green); }
+.guide-pipe-dot-red    { background: var(--red); }
+.guide-pipe-dot-violet { background: var(--violet); }
+.guide-pipe-dot-amber  { background: var(--amber); }
+.guide-pipe-label { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.guide-pipe-label strong { font-weight: 600; }
+
+.guide-tip {
+  margin-top: 12px; padding: 10px 12px; background: var(--indigo-dim);
+  border: 1px solid rgba(129,140,248,0.2); border-radius: 6px;
+  font-size: 12px; color: var(--muted); line-height: 1.6;
+}
+.guide-tip strong { color: var(--indigo); }
+
 @keyframes fadein  { from { opacity:0; transform: translateY(3px); } to { opacity:1; transform: none; } }
 @keyframes slidein { from { opacity:0; transform: translateX(6px); } to { opacity:1; transform: none; } }
 @keyframes slideup { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
@@ -507,6 +555,7 @@ input.demo-input { display: none; }
         Run
       </button>
       <div class="icon-btn" id="configBtn" title="Configure providers" onclick="openDrawer()">⚙</div>
+      <div class="icon-btn icon-btn-help" title="User guide" onclick="openGuide()">?</div>
     </div>
   </header>
 
@@ -587,6 +636,140 @@ input.demo-input { display: none; }
   </div>
   <div class="drawer-body" id="drawerBody">
     <!-- rendered by renderDrawer() -->
+  </div>
+</div>
+
+<!-- Help / Guide Drawer -->
+<div class="drawer-overlay" id="guideOverlay" onclick="closeGuide()"></div>
+<div class="drawer" id="guideDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">User Guide</div>
+    <div class="drawer-close" onclick="closeGuide()">×</div>
+  </div>
+  <div class="drawer-body">
+
+    <div class="guide-section open" id="gs-intro">
+      <div class="guide-section-head" onclick="toggleGuideSection('gs-intro')">
+        <div class="guide-section-title"><span class="guide-section-icon">⚡</span> What is this app?</div>
+        <span class="guide-section-arrow">▶</span>
+      </div>
+      <div class="guide-section-body">
+        <p class="guide-p">This is a <strong>self-healing web scraper</strong>. It visits a website, collects data, and automatically detects when something breaks — for example, when a website redesign causes a field like "price" to go missing.</p>
+        <p class="guide-p">When a breakage is detected, it asks an AI to analyse the page and suggest a fix. The fix is saved as a patch file for a developer to review and apply. <strong>Nothing is changed automatically.</strong></p>
+      </div>
+    </div>
+
+    <div class="guide-section" id="gs-run">
+      <div class="guide-section-head" onclick="toggleGuideSection('gs-run')">
+        <div class="guide-section-title"><span class="guide-section-icon">▶</span> Running the scraper</div>
+        <span class="guide-section-arrow">▶</span>
+      </div>
+      <div class="guide-section-body">
+        <div class="guide-step-list">
+          <div class="guide-step">
+            <div class="guide-step-num">1</div>
+            <div class="guide-step-text">Select a <strong>provider</strong> from the dropdown at the top — this is the website you want to scrape.</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">2</div>
+            <div class="guide-step-text">Toggle <strong>Demo</strong> on if you want to see the full healing flow. Demo mode uses a deliberately broken selector so you can watch the AI fix it.</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">3</div>
+            <div class="guide-step-text">Click <strong>Run</strong>. The pipeline log on the left will show live progress.</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">4</div>
+            <div class="guide-step-text">Results appear in the <strong>Latest Run</strong> tab on the right. If a fix was found, a diff preview will also appear at the bottom of the log.</div>
+          </div>
+        </div>
+        <div class="guide-tip"><strong>Tip:</strong> Leave Demo mode off for a normal scrape — the healer will only fire if the live website actually has a broken selector.</div>
+      </div>
+    </div>
+
+    <div class="guide-section" id="gs-pipeline">
+      <div class="guide-section-head" onclick="toggleGuideSection('gs-pipeline')">
+        <div class="guide-section-title"><span class="guide-section-icon">🔄</span> What each pipeline step means</div>
+        <span class="guide-section-arrow">▶</span>
+      </div>
+      <div class="guide-section-body">
+        <div class="guide-pipeline-row">
+          <div class="guide-pipe-dot guide-pipe-dot-cyan"></div>
+          <div class="guide-pipe-label"><strong>Scrape</strong> — The app opens the website in a headless browser and collects the raw data.</div>
+        </div>
+        <div class="guide-pipeline-row">
+          <div class="guide-pipe-dot guide-pipe-dot-green"></div>
+          <div class="guide-pipe-label"><strong>Validate</strong> — Each item is checked to make sure all required fields have values.</div>
+        </div>
+        <div class="guide-pipeline-row">
+          <div class="guide-pipe-dot guide-pipe-dot-red"></div>
+          <div class="guide-pipe-label"><strong>Detect</strong> — Any fields that came back empty or missing are flagged as failures.</div>
+        </div>
+        <div class="guide-pipeline-row">
+          <div class="guide-pipe-dot guide-pipe-dot-violet"></div>
+          <div class="guide-pipe-label"><strong>Heal</strong> — The AI receives a snapshot of the page HTML and suggests a corrected CSS selector.</div>
+        </div>
+        <div class="guide-pipeline-row">
+          <div class="guide-pipe-dot guide-pipe-dot-amber"></div>
+          <div class="guide-pipe-label"><strong>Patch</strong> — The suggested fix is tested against real data, then saved as a patch file ready to apply.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section" id="gs-results">
+      <div class="guide-section-head" onclick="toggleGuideSection('gs-results')">
+        <div class="guide-section-title"><span class="guide-section-icon">📋</span> Understanding the results</div>
+        <span class="guide-section-arrow">▶</span>
+      </div>
+      <div class="guide-section-body">
+        <p class="guide-p"><strong>⚠ Something went wrong</strong> — A field could not be scraped. The card shows which field broke and the error reason.</p>
+        <p class="guide-p"><strong>✦ AI found a fix</strong> — The AI proposed a new CSS selector. The confidence bar shows how certain it is. Read the diagnosis for a plain-English explanation of what changed on the page.</p>
+        <p class="guide-p"><strong>✓ Fix was tested</strong> — The proposed selector was tried against the real page. "20 of 20 items passed" means it works perfectly. Fewer than 100% means you should review carefully.</p>
+        <p class="guide-p"><strong>✔ Fix is ready to apply</strong> — A patch file has been saved. Share the <code>git apply</code> command with your developer, or use the copy button in the diff preview at the bottom of the screen.</p>
+      </div>
+    </div>
+
+    <div class="guide-section" id="gs-provider">
+      <div class="guide-section-head" onclick="toggleGuideSection('gs-provider')">
+        <div class="guide-section-title"><span class="guide-section-icon">⚙</span> Adding a new website</div>
+        <span class="guide-section-arrow">▶</span>
+      </div>
+      <div class="guide-section-body">
+        <div class="guide-step-list">
+          <div class="guide-step">
+            <div class="guide-step-num">1</div>
+            <div class="guide-step-text">Click the <strong>⚙</strong> button in the top right to open the provider settings.</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">2</div>
+            <div class="guide-step-text">Click <strong>+ Add Provider</strong> and fill in a name, the page URL, and the CSS selector for the item container (e.g. each product card).</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">3</div>
+            <div class="guide-step-text">Add a row for each field you want to collect (e.g. title, price). Use the <strong>Test</strong> button to check each selector works before saving.</div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">4</div>
+            <div class="guide-step-text">Optionally add a <strong>Demo Break</strong> — a deliberately wrong selector — so you can demo the healing flow for this provider.</div>
+          </div>
+        </div>
+        <div class="guide-tip"><strong>Not sure what a CSS selector is?</strong> Ask your developer to help fill in the selectors. Once saved, you can run the scraper yourself without any further help.</div>
+      </div>
+    </div>
+
+    <div class="guide-section" id="gs-apply">
+      <div class="guide-section-head" onclick="toggleGuideSection('gs-apply')">
+        <div class="guide-section-title"><span class="guide-section-icon">✔</span> Applying a fix</div>
+        <span class="guide-section-arrow">▶</span>
+      </div>
+      <div class="guide-section-body">
+        <p class="guide-p">When a fix is ready, a diff preview appears at the bottom of the pipeline log. The app <strong>never applies fixes automatically</strong> — a human must review and approve every change.</p>
+        <p class="guide-p">To apply a fix, copy the <code>git apply</code> command from the diff panel and run it in a terminal from the project folder — or forward it to your developer.</p>
+        <p class="guide-p">After applying, run the scraper again in <strong>Live</strong> mode (Demo off) to confirm the fix works on the real site.</p>
+        <div class="guide-tip"><strong>Why isn't it automatic?</strong> Auto-applying AI-generated changes to a live scraper is risky. The confidence score and sandbox test reduce the chance of a bad fix, but a human review step is always the safest approach.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -939,6 +1122,23 @@ function toggleHistProposals(headEl) {
   if (arrow && (arrow.textContent === '▸' || arrow.textContent === '▾')) {
     arrow.textContent = open ? '▾' : '▸';
   }
+}
+
+// ── Guide Drawer ──────────────────────────────────────────────────────────────
+function openGuide() {
+  $('guideDrawer').classList.add('open');
+  $('guideOverlay').classList.add('open');
+}
+
+function closeGuide() {
+  $('guideDrawer').classList.remove('open');
+  $('guideOverlay').classList.remove('open');
+}
+
+function toggleGuideSection(id) {
+  const section = $(id);
+  if (!section) return;
+  section.classList.toggle('open');
 }
 
 // ── Config Drawer ─────────────────────────────────────────────────────────────
