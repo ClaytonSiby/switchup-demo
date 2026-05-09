@@ -4,6 +4,7 @@
   "description": "Self-healing web scraper demo: Playwright fails → AI analyzes → generates fix → commits for review",
   "main": "dist/index.js",
   "scripts": {
+    "start": "node dist/server.js",
     "db:migrate": "ts-node src/db/migrate.ts",
     "scrape": "ts-node src/index.ts",
     "demo": "ts-node src/index.ts --demo",
