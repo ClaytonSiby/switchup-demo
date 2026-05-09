@@ -23,7 +23,7 @@ books.toscrape.com
   DOM slice capture          ← outerHTML of the article element (~400 bytes)
        │
        ▼
-  Gemini gemini-2.0-flash    ← structured prompt → HealProposalSchema
+  Gemini gemini-2.0-flash-lite    ← structured prompt → HealProposalSchema
        │
        ▼
   Sandbox retry              ← tests the proposed selector before committing
@@ -95,7 +95,7 @@ Expected output:
 [scraper] Found 20 articles on https://books.toscrape.com/catalogue/page-1.html
 [scraper] 0 valid books, 20 failures
 [healer] 20 failures detected across 1 field(s): price
-[healer] Calling Gemini gemini-2.0-flash for field "price"...
+[healer] Calling Gemini gemini-2.0-flash-lite for field "price"...
 [healer] Proposal: "p.price_color" (confidence: 0.97)
 [healer] Diagnosis: span.price-amount does not exist; price is rendered in p.price_color
 [healer] Latency: 820ms | Tokens: 892in / 87out
