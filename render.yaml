@@ -2,7 +2,7 @@ services:
   - type: web
     name: switchup-demo
     runtime: node
-    buildCommand: npx playwright install chromium --with-deps && npm run build
+    buildCommand: npm install && npx playwright install chromium && npm run build
     startCommand: node dist/server.js
     healthCheckPath: /
     envVars:
