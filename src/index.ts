@@ -5,13 +5,6 @@ import { loadProviders } from "./config/providers";
 
 const IS_DEMO = process.argv.includes("--demo") || process.env.BROKEN_SELECTORS === "true";
 
-const providers = loadProviders();
-if (providers.length === 0) {
-  console.error("[fatal] No providers found in config/providers.json");
-  process.exit(1);
-}
-const provider = providers[0];
-
 function cliEmit(evt: PipelineEvent): void {
   switch (evt.type) {
     case "log":
@@ -46,17 +39,26 @@ function cliEmit(evt: PipelineEvent): void {
   }
 }
 
-console.log(`[demo] Starting self-healing scraper — provider: ${provider.name}, demo: ${IS_DEMO}`);
+(async () => {
+  const providers = await loadProviders();
+  if (providers.length === 0) {
+    console.error("[fatal] No providers found in the database. Run npm run db:migrate to seed.");
+    process.exit(1);
+  }
+  const provider = providers[0];
 
-runPipeline(
-  {
-    provider,
-    demo:      IS_DEMO,
-    maxItems:  parseInt(process.env.MAX_BOOKS ?? "20", 10),
-    outputDir: path.join(__dirname, "..", "output"),
-  },
-  cliEmit,
-).catch((err) => {
+  console.log(`[demo] Starting self-healing scraper — provider: ${provider.name}, demo: ${IS_DEMO}`);
+
+  await runPipeline(
+    {
+      provider,
+      demo:      IS_DEMO,
+      maxItems:  parseInt(process.env.MAX_BOOKS ?? "20", 10),
+      outputDir: path.join(__dirname, "..", "output"),
+    },
+    cliEmit,
+  );
+})().catch((err) => {
   console.error("[fatal]", err);
   process.exit(1);
 });
