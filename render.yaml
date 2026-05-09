@@ -8,6 +8,8 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/project/src/.playwright-browsers
       - key: LANGFUSE_BASE_URL
         value: https://cloud.langfuse.com
       - key: MAX_BOOKS
