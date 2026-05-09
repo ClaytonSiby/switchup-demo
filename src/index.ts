@@ -1,8 +1,16 @@
 import "dotenv/config";
 import * as path from "path";
 import { runPipeline, PipelineEvent } from "./pipeline";
+import { loadProviders } from "./config/providers";
 
-const IS_DEMO = process.argv.includes("--demo");
+const IS_DEMO = process.argv.includes("--demo") || process.env.BROKEN_SELECTORS === "true";
+
+const providers = loadProviders();
+if (providers.length === 0) {
+  console.error("[fatal] No providers found in config/providers.json");
+  process.exit(1);
+}
+const provider = providers[0];
 
 function cliEmit(evt: PipelineEvent): void {
   switch (evt.type) {
@@ -11,7 +19,7 @@ function cliEmit(evt: PipelineEvent): void {
       else console.log(`[${evt.source}] ${evt.message}`);
       break;
     case "scrape:done":
-      console.log(`[scraper] ${evt.bookCount} valid books, ${evt.failureCount} failures`);
+      console.log(`[scraper] ${evt.bookCount} valid items, ${evt.failureCount} failures`);
       break;
     case "failure":
       console.log(`\n[healer] ${evt.totalFailures} failures detected on field: ${evt.field}`);
@@ -20,11 +28,10 @@ function cliEmit(evt: PipelineEvent): void {
       console.log(`[healer] Reasoning: ${evt.proposal.reasoning}`);
       break;
     case "sandbox-result":
-      // logged via "log" events already
       break;
     case "patch":
       console.log(`\n[diff] Patch written to: ${evt.outputPath}`);
-      console.log(`[diff] Apply with: git apply output/selectors.patch`);
+      console.log(`[diff] Apply with: git apply ${evt.outputPath}`);
       if (IS_DEMO) {
         console.log("\n--- Patch Preview ---");
         console.log(evt.patchContent);
@@ -39,14 +46,14 @@ function cliEmit(evt: PipelineEvent): void {
   }
 }
 
-console.log(`[demo] Starting self-healing scraper (demo=${IS_DEMO})`);
+console.log(`[demo] Starting self-healing scraper — provider: ${provider.name}, demo: ${IS_DEMO}`);
 
 runPipeline(
   {
-    demo:      IS_DEMO || process.env.BROKEN_SELECTORS === "true",
-    maxBooks:  parseInt(process.env.MAX_BOOKS ?? "20", 10),
+    provider,
+    demo:      IS_DEMO,
+    maxItems:  parseInt(process.env.MAX_BOOKS ?? "20", 10),
     outputDir: path.join(__dirname, "..", "output"),
-    targetUrl: "https://books.toscrape.com/catalogue/page-1.html",
   },
   cliEmit,
 ).catch((err) => {
