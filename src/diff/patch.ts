@@ -1,4 +1,4 @@
-import { createPatch } from "diff";
+import { createTwoFilesPatch } from "diff";
 import * as fs from "fs";
 import * as path from "path";
 import { SelectorConfig, BookField } from "../config/selectors";
@@ -41,9 +41,10 @@ export async function generatePatch(
     );
   }
 
-  const relativeFilename = "src/config/selectors.ts";
-  const rawPatch = createPatch(
-    relativeFilename,
+  // Use a/b prefixes so git apply -p1 (default) resolves to src/config/selectors.ts
+  const rawPatch = createTwoFilesPatch(
+    "a/src/config/selectors.ts",
+    "b/src/config/selectors.ts",
     originalSource,
     proposedSource,
     "broken",
