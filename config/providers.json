@@ -1,0 +1,19 @@
+[
+  {
+    "id": "books-toscrape",
+    "name": "Books to Scrape",
+    "url": "https://books.toscrape.com/catalogue/page-1.html",
+    "articleSelector": "article.product_pod",
+    "baseUrl": "https://books.toscrape.com/catalogue/",
+    "fields": [
+      { "name": "title",        "selector": "h3 > a",        "type": "text"  },
+      { "name": "price",        "selector": "p.price_color", "type": "text"  },
+      { "name": "rating",       "selector": "p.star-rating", "type": "class" },
+      { "name": "availability", "selector": "p.availability","type": "text"  },
+      { "name": "url",          "selector": "h3 > a",        "type": "href"  }
+    ],
+    "demoBreaks": [
+      { "field": "price", "selector": "span.price-amount" }
+    ]
+  }
+]

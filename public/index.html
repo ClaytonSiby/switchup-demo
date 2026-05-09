@@ -42,7 +42,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 24px; border-bottom: 1px solid var(--border);
-  background: var(--surface); gap: 16px;
+  background: var(--surface); gap: 12px; flex-wrap: nowrap;
 }
 .logo {
   width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
@@ -53,7 +53,39 @@ header {
 .title { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
 .subtitle { font-size: 11px; color: var(--muted); font-family: var(--mono); }
 .header-left { display: flex; align-items: center; gap: 12px; }
-.header-right { display: flex; align-items: center; gap: 10px; }
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; }
+
+/* Provider select */
+.provider-select {
+  background: var(--raised); border: 1px solid var(--border-hi); color: var(--text);
+  font-family: var(--ui); font-size: 12px; padding: 5px 10px; border-radius: 6px;
+  cursor: pointer; outline: none; max-width: 180px;
+}
+.provider-select:focus { border-color: var(--indigo); }
+
+/* Demo toggle */
+.demo-wrap { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); cursor: pointer; -webkit-user-select: none; user-select: none; }
+.toggle-track {
+  width: 34px; height: 18px; border-radius: 9px; background: var(--dim);
+  position: relative; transition: background 0.2s; flex-shrink: 0; cursor: pointer;
+}
+.toggle-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: transform 0.2s;
+}
+input[type=checkbox]:checked + .demo-wrap .toggle-track { background: var(--amber); }
+input[type=checkbox]:checked + .demo-wrap .toggle-thumb { transform: translateX(16px); }
+input.demo-input { display: none; }
+.demo-wrap.active { color: var(--amber); }
+
+/* Icon button */
+.icon-btn {
+  width: 32px; height: 32px; border: 1px solid var(--border); background: var(--raised);
+  border-radius: 6px; color: var(--muted); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; transition: border-color 0.15s, color 0.15s; font-size: 14px;
+}
+.icon-btn:hover { border-color: var(--border-hi); color: var(--text); }
 
 .status-pill {
   display: flex; align-items: center; gap: 6px;
@@ -72,7 +104,7 @@ header {
   display: flex; align-items: center; gap: 7px;
   padding: 7px 16px; border: none; border-radius: 7px;
   background: #4f46e5; color: #fff; font-family: var(--ui); font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: background 0.15s, opacity 0.15s; letter-spacing: -0.1px;
+  cursor: pointer; transition: background 0.15s, opacity 0.15s; letter-spacing: -0.1px; white-space: nowrap;
 }
 .run-btn:hover:not(:disabled) { background: #4338ca; }
 .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -105,7 +137,7 @@ header {
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* ── Main ── */
-.main { display: grid; grid-template-columns: 1fr 380px; overflow: hidden; }
+.main { display: grid; grid-template-columns: 1fr 400px; overflow: hidden; }
 
 /* ── Terminal ── */
 .pane { display: flex; flex-direction: column; overflow: hidden; }
@@ -136,20 +168,42 @@ header {
 .log-src-error    { color: var(--red); }
 .log-warn { color: var(--amber) !important; }
 
-/* ── Results ── */
-.results-pane { border-left: 1px solid var(--border); }
-.results { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-.results:empty::after { content: 'Results will appear here…'; color: var(--dim); font-size: 12px; font-style: italic; padding: 8px; }
+/* ── Right pane tabs ── */
+.results-pane { border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.tab-bar {
+  display: flex; gap: 0; padding: 0 16px; height: 42px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  align-items: center; flex-shrink: 0;
+}
+.tab {
+  font-size: 13px; font-weight: 500;
+  color: var(--muted); padding: 0 14px; height: 100%; display: flex; align-items: center;
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--indigo); }
+.tab-panel { flex: 1; overflow-y: auto; padding: 12px; display: none; flex-direction: column; gap: 10px; }
+.tab-panel.active { display: flex; }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; gap: 8px; padding: 32px 20px; text-align: center;
+}
+.empty-icon { font-size: 28px; opacity: 0.3; }
+.empty-title { font-size: 13px; font-weight: 500; color: var(--muted); }
+.empty-sub { font-size: 12px; color: var(--dim); line-height: 1.5; }
 
 /* ── Cards ── */
 .card {
   border-radius: var(--r); border: 1px solid var(--border);
   background: var(--raised); overflow: hidden; animation: slidein 0.3s ease;
+  flex-shrink: 0;
 }
 .card-head {
   display: flex; align-items: center; gap: 8px;
-  padding: 9px 14px; border-bottom: 1px solid var(--border);
-  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600;
 }
 .card-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .card-body { padding: 14px; }
@@ -170,13 +224,20 @@ header {
 .card-patch .card-head { color: var(--green); }
 .card-patch .card-dot  { background: var(--green); }
 
+.card-history { border-color: var(--border); cursor: pointer; }
+.card-history .card-head { color: var(--muted); }
+.card-history .card-dot  { background: var(--dim); }
+.card-history.success .card-dot { background: var(--green); }
+.card-history.demo    .card-dot { background: var(--amber); }
+.card-history .card-body { padding: 10px 14px; }
+
 /* Card internals */
-.kv { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+.kv { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; font-size: 12px; }
 .kv:last-child { margin-bottom: 0; }
-.kk { color: var(--muted); min-width: 64px; font-size: 11px; }
-.kv-code { font-family: var(--mono); color: var(--text); }
-.kv-bad  { font-family: var(--mono); color: var(--red); }
-.kv-small { font-size: 11px; color: var(--muted); }
+.kk { color: var(--muted); min-width: 80px; font-size: 11px; flex-shrink: 0; padding-top: 1px; }
+.kv-code { font-family: var(--mono); color: var(--text); word-break: break-all; }
+.kv-bad  { font-family: var(--mono); color: var(--red); word-break: break-all; }
+.kv-small { font-size: 11px; color: var(--muted); word-break: break-word; line-height: 1.5; }
 
 .selector-big { font-family: var(--mono); font-size: 16px; font-weight: 500; color: var(--green); margin-bottom: 14px; }
 
@@ -189,6 +250,9 @@ header {
 .diagnosis { font-size: 12px; color: var(--muted); padding-left: 10px; border-left: 2px solid var(--indigo-dim); line-height: 1.6; margin-bottom: 10px; }
 .meta-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { font-size: 10px; font-family: var(--mono); color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.badge { font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 4px; }
+.badge-demo { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+.badge-live { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
 
 .sandbox-row { display: flex; align-items: center; gap: 12px; }
 .sandbox-icon {
@@ -200,7 +264,21 @@ header {
 .sandbox-strong { font-size: 13px; font-weight: 600; }
 .sandbox-sub { font-size: 11px; color: var(--muted); }
 
-.diff-view { font-family: var(--mono); font-size: 11px; line-height: 1.75; overflow-x: auto; margin-bottom: 12px; }
+/* Collapsible diff */
+.diff-toggle {
+  font-size: 11px; color: var(--muted); cursor: pointer; padding: 4px 0 8px;
+  display: flex; align-items: center; gap: 5px; -webkit-user-select: none; user-select: none;
+}
+.diff-toggle:hover { color: var(--text); }
+.diff-toggle-icon { font-size: 9px; transition: transform 0.2s; }
+.diff-toggle.open .diff-toggle-icon { transform: rotate(90deg); }
+.diff-view {
+  font-family: var(--mono); font-size: 11px; line-height: 1.75;
+  overflow-x: auto; overflow-y: auto; max-height: 200px;
+  margin-bottom: 12px; border-radius: 4px;
+  display: none;
+}
+.diff-view.open { display: block; }
 .dl { display: flex; }
 .dl-sign { width: 14px; flex-shrink: 0; text-align: center; }
 .dl-text { flex: 1; white-space: pre; }
@@ -208,15 +286,191 @@ header {
 .dl-del  { color: var(--red);   background: var(--red-dim); }
 .dl-hunk { color: var(--indigo); background: var(--indigo-dim); }
 
+.apply-section { margin-top: 4px; }
+.apply-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
 .apply-box {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 12px; background: var(--surface); border: 1px solid var(--border);
   border-radius: 6px; font-family: var(--mono); font-size: 11px; color: var(--green);
+  cursor: pointer; position: relative;
 }
+.apply-box:hover { border-color: var(--border-hi); }
 .apply-prompt { color: var(--dim); }
+.copy-hint { font-size: 10px; color: var(--dim); margin-left: auto; }
+
+/* ── History card ── */
+.card-history { cursor: default; }
+.card-history .card-head { cursor: pointer; }
+.card-history .card-head:hover { background: rgba(255,255,255,0.02); }
+.hist-summary { font-size: 12px; color: var(--muted); margin-bottom: 0; }
+.hist-summary strong { color: var(--text); font-weight: 600; }
+.hist-summary .ok { color: var(--green); }
+.hist-summary .warn { color: var(--amber); }
+.hist-time { font-size: 11px; color: var(--dim); margin-top: 3px; }
+.hist-expand { font-size: 10px; color: var(--dim); margin-top: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.hist-expand:hover { color: var(--muted); }
+.hist-proposals { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); display: none; }
+.hist-proposals.open { display: block; }
+.hist-prop { font-size: 12px; color: var(--muted); margin-bottom: 6px; line-height: 1.5; }
+.hist-prop .prop-field { color: var(--text); font-weight: 500; }
+.hist-prop .prop-selector { font-family: var(--mono); font-size: 11px; color: var(--green); }
+.hist-prop .prop-conf { font-size: 10px; color: var(--dim); }
+
+/* ── Config Drawer ── */
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+.drawer {
+  position: fixed; top: 0; right: -520px; width: 520px; height: 100vh;
+  background: var(--surface); border-left: 1px solid var(--border);
+  z-index: 101; transition: right 0.3s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.drawer.open { right: 0; }
+
+.drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; height: 56px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.drawer-title { font-size: 14px; font-weight: 600; }
+.drawer-close {
+  width: 28px; height: 28px; border: 1px solid var(--border); background: var(--raised);
+  border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 16px;
+}
+.drawer-close:hover { color: var(--text); }
+
+.drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+/* Provider list in drawer */
+.provider-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--r);
+  background: var(--raised); margin-bottom: 8px;
+}
+.provider-item-name { font-size: 13px; font-weight: 500; }
+.provider-item-url  { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
+.provider-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-sm {
+  font-size: 11px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--raised); color: var(--muted); cursor: pointer; font-family: var(--ui);
+}
+.btn-sm:hover { color: var(--text); border-color: var(--border-hi); }
+.btn-sm.danger:hover { color: var(--red); border-color: rgba(248,113,113,0.4); }
+
+.add-btn {
+  width: 100%; padding: 9px; border: 1px dashed var(--dim); background: transparent;
+  border-radius: var(--r); color: var(--muted); font-family: var(--ui); font-size: 12px;
+  cursor: pointer; margin-top: 4px; transition: border-color 0.15s, color 0.15s;
+}
+.add-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+
+/* Provider form */
+.pf { display: none; flex-direction: column; gap: 0; }
+.pf.open { display: flex; }
+.pf-title { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: block; }
+.form-input {
+  width: 100%; padding: 7px 10px; background: var(--raised); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-family: var(--ui); font-size: 13px; outline: none;
+}
+.form-input:focus { border-color: var(--indigo); }
+.form-input::placeholder { color: var(--dim); }
+.form-select {
+  padding: 7px 10px; background: var(--raised); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-family: var(--ui); font-size: 12px; outline: none;
+}
+.form-select:focus { border-color: var(--indigo); }
+
+.fields-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.fields-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.field-row {
+  display: grid; grid-template-columns: 1fr 1fr 72px auto; gap: 6px;
+  align-items: center; margin-bottom: 6px;
+}
+.field-row-demo { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: center; margin-bottom: 6px; padding: 6px 10px; background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.15); border-radius: 6px; }
+.field-row-demo-label { font-size: 11px; color: var(--amber); white-space: nowrap; }
+
+.test-result { font-size: 11px; margin-top: 4px; padding: 4px 8px; border-radius: 4px; }
+.test-ok   { background: var(--green-dim); color: var(--green); }
+.test-fail { background: var(--red-dim);   color: var(--red); }
+
+.del-field-btn {
+  width: 24px; height: 24px; border: 1px solid var(--border); background: transparent;
+  border-radius: 4px; color: var(--dim); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.del-field-btn:hover { border-color: rgba(248,113,113,0.4); color: var(--red); }
+
+.test-btn {
+  font-size: 10px; padding: 4px 8px; border: 1px solid var(--border); background: var(--raised);
+  border-radius: 4px; color: var(--muted); cursor: pointer; font-family: var(--ui); white-space: nowrap;
+}
+.test-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+.test-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.form-actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn-primary {
+  flex: 1; padding: 8px 16px; background: #4f46e5; border: none; border-radius: 6px;
+  color: #fff; font-family: var(--ui); font-size: 13px; font-weight: 500; cursor: pointer;
+}
+.btn-primary:hover { background: #4338ca; }
+.btn-secondary {
+  padding: 8px 16px; background: var(--raised); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--muted); font-family: var(--ui); font-size: 13px; cursor: pointer;
+}
+.btn-secondary:hover { color: var(--text); }
+
+/* ── Diff bottom panel ── */
+.diff-panel {
+  flex-shrink: 0; border-top: 2px solid rgba(74,222,128,0.25);
+  background: var(--surface); display: none; flex-direction: column;
+  max-height: 260px; min-height: 180px;
+}
+.diff-panel.open { display: flex; animation: slideup 0.25s ease; }
+.diff-panel-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 36px; border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--green); flex-shrink: 0;
+}
+.diff-panel-header .dp-label { flex: 1; }
+.diff-panel-header .dp-field {
+  font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 400;
+}
+.diff-panel-close {
+  width: 22px; height: 22px; border: 1px solid var(--border); background: var(--raised);
+  border-radius: 4px; cursor: pointer; color: var(--muted);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1;
+}
+.diff-panel-close:hover { color: var(--text); border-color: var(--border-hi); }
+.diff-panel-body {
+  flex: 1; overflow-y: auto; overflow-x: auto; padding: 8px 16px;
+  font-family: var(--mono); font-size: 11px; line-height: 1.75;
+}
+.diff-panel-footer {
+  border-top: 1px solid var(--border); padding: 7px 16px;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  background: var(--raised);
+}
+.dp-cmd {
+  font-family: var(--mono); font-size: 11px; color: var(--green); flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dp-cmd-prompt { color: var(--dim); margin-right: 4px; }
+.dp-copy {
+  font-size: 11px; padding: 3px 10px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); border-radius: 4px;
+  cursor: pointer; font-family: var(--ui); white-space: nowrap; flex-shrink: 0;
+}
+.dp-copy:hover { color: var(--text); border-color: var(--border-hi); }
 
 @keyframes fadein  { from { opacity:0; transform: translateY(3px); } to { opacity:1; transform: none; } }
 @keyframes slidein { from { opacity:0; transform: translateX(6px); } to { opacity:1; transform: none; } }
+@keyframes slideup { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -236,14 +490,23 @@ header {
       </div>
     </div>
     <div class="header-right">
+      <select class="provider-select" id="providerSelect" title="Select provider"></select>
+
+      <input type="checkbox" class="demo-input" id="demoToggle">
+      <label for="demoToggle" class="demo-wrap" id="demoLabel" title="Run with intentionally broken selectors to demo the healing flow">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        Demo
+      </label>
+
       <div class="status-pill" id="statusPill">
         <div class="status-dot"></div>
         <span id="statusText">Idle</span>
       </div>
       <button class="run-btn" id="runBtn" onclick="startRun()">
         <svg viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l8 4.5-8 4.5z"/></svg>
-        Run Demo
+        Run
       </button>
+      <div class="icon-btn" id="configBtn" title="Configure providers" onclick="openDrawer()">⚙</div>
     </div>
   </header>
 
@@ -274,32 +537,112 @@ header {
         Pipeline Log
       </div>
       <div class="terminal" id="terminal"></div>
+
+      <!-- Diff panel — slides up when a patch is ready -->
+      <div class="diff-panel" id="diffPanel">
+        <div class="diff-panel-header">
+          <span class="dp-label">Diff Preview</span>
+          <span class="dp-field" id="dpField"></span>
+          <div class="diff-panel-close" onclick="closeDiffPanel()" title="Close">×</div>
+        </div>
+        <div class="diff-panel-body" id="diffPanelBody"></div>
+        <div class="diff-panel-footer">
+          <span class="dp-cmd"><span class="dp-cmd-prompt">$</span><span id="dpCmd"></span></span>
+          <button type="button" class="dp-copy" onclick="copyDpCmd()">Copy command</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Results -->
-    <div class="pane results-pane">
-      <div class="pane-header">Results</div>
-      <div class="results" id="results"></div>
+    <!-- Results / History pane -->
+    <div class="results-pane">
+      <div class="tab-bar">
+        <div class="tab active" data-tab="results" onclick="switchTab('results')">Latest Run</div>
+        <div class="tab" data-tab="history" onclick="switchTab('history')">Run History</div>
+      </div>
+      <div class="tab-panel active" id="tab-results">
+        <div class="empty-state" id="results-empty">
+          <div class="empty-icon">▶</div>
+          <div class="empty-title">Nothing here yet</div>
+          <div class="empty-sub">Press <strong>Run</strong> to start the scraper.<br>Results will appear here as it runs.</div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-history">
+        <div class="empty-state" id="history-empty">
+          <div class="empty-icon">🕑</div>
+          <div class="empty-title">No runs yet</div>
+          <div class="empty-sub">Each time you run the scraper, a summary will be saved here so you can track what changed over time.</div>
+        </div>
+      </div>
     </div>
 
   </div>
 </div>
 
+<!-- Config Drawer -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Providers</div>
+    <div class="drawer-close" onclick="closeDrawer()">×</div>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- rendered by renderDrawer() -->
+  </div>
+</div>
+
 <script>
+// ── Globals ───────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const terminal = $('terminal');
-const results  = $('results');
-const runBtn   = $('runBtn');
-const statusPill = $('statusPill');
-const statusText = $('statusText');
+const terminal     = $('terminal');
+const runBtn       = $('runBtn');
+const statusPill   = $('statusPill');
+const statusText   = $('statusText');
+const providerSel  = $('providerSelect');
+const demoToggle   = $('demoToggle');
+const demoLabel    = $('demoLabel');
 
 const STEPS = { scrape:'s-scrape', validate:'s-validate', detect:'s-detect', heal:'s-heal', patch:'s-patch' };
 
+let providers = [];
+let editingId  = null; // null = adding new, string = editing existing
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+// ── Provider select ───────────────────────────────────────────────────────────
+async function loadProviders() {
+  const data = await fetch('/api/providers').then(r => r.json());
+  providers = data;
+  providerSel.innerHTML = providers.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  updateDemoToggle();
+}
+
+function currentProvider() {
+  return providers.find(p => p.id === providerSel.value) ?? providers[0];
+}
+
+function updateDemoToggle() {
+  const p = currentProvider();
+  const hasDemoBreaks = p && p.demoBreaks && p.demoBreaks.length > 0;
+  demoToggle.disabled = !hasDemoBreaks;
+  demoLabel.title = hasDemoBreaks
+    ? 'Run with intentionally broken selectors to demo the healing flow'
+    : 'This provider has no demo breaks configured';
+  demoLabel.classList.toggle('active', demoToggle.checked && hasDemoBreaks);
+}
+
+providerSel.addEventListener('change', updateDemoToggle);
+demoToggle.addEventListener('change', () => demoLabel.classList.toggle('active', demoToggle.checked));
+
+// ── Pipeline step helpers ─────────────────────────────────────────────────────
 function step(name, state) {
   const el = $(STEPS[name]);
   if (!el) return;
   el.className = 'step ' + state;
-  if (state === 'done') el.querySelector('.step-node').textContent = '✓';
+  if (state === 'done')  el.querySelector('.step-node').textContent = '✓';
   if (state === 'error') el.querySelector('.step-node').textContent = '✕';
 }
 
@@ -324,19 +667,22 @@ function log(source, message, warn) {
 }
 
 function card(cls, titleHtml, bodyHtml) {
+  const tab = $('tab-results');
+  const empty = $('results-empty');
+  if (empty) empty.remove();
   const d = document.createElement('div');
   d.className = 'card ' + cls;
   d.innerHTML = `<div class="card-head"><div class="card-dot"></div>${titleHtml}</div><div class="card-body">${bodyHtml}</div>`;
-  results.appendChild(d);
-  results.scrollTop = results.scrollHeight;
+  tab.appendChild(d);
+  tab.scrollTop = tab.scrollHeight;
 }
 
 function renderDiff(patch) {
   const lines = patch.split('\n').filter(l => !l.startsWith('#') && l.trim());
   return lines.map(line => {
-    if ((line.startsWith('+') && !line.startsWith('+++')) )
+    if (line.startsWith('+') && !line.startsWith('+++'))
       return `<div class="dl dl-add"><span class="dl-sign">+</span><span class="dl-text">${esc(line.slice(1))}</span></div>`;
-    if ((line.startsWith('-') && !line.startsWith('---')) )
+    if (line.startsWith('-') && !line.startsWith('---'))
       return `<div class="dl dl-del"><span class="dl-sign">−</span><span class="dl-text">${esc(line.slice(1))}</span></div>`;
     if (line.startsWith('@@'))
       return `<div class="dl dl-hunk"><span class="dl-text">${esc(line)}</span></div>`;
@@ -346,15 +692,37 @@ function renderDiff(patch) {
 
 function reset() {
   terminal.innerHTML = '';
-  results.innerHTML = '';
-  Object.keys(STEPS).forEach(s => {
+  $('tab-results').innerHTML = '<div class="empty-state" id="results-empty"><div class="empty-icon">▶</div><div class="empty-title">Nothing here yet</div><div class="empty-sub">Results will appear as the scraper runs.</div></div>';
+  closeDiffPanel();
+  Object.keys(STEPS).forEach((s, i) => {
     const el = $(STEPS[s]);
     el.className = 'step';
-    el.querySelector('.step-node').textContent = Object.keys(STEPS).indexOf(s) + 1;
+    el.querySelector('.step-node').textContent = String(i + 1);
   });
   setStatus('', 'Idle');
 }
 
+function relativeTime(isoStr) {
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)  return 'just now';
+  if (mins < 60) return `${mins} minute${mins > 1 ? 's' : ''} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs} hour${hrs > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7)  return `${days} day${days > 1 ? 's' : ''} ago`;
+  return new Date(isoStr).toLocaleDateString();
+}
+
+function toggleDiff(btn) {
+  const view = btn.nextElementSibling;
+  const open = view.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.querySelector('.diff-toggle-icon').textContent = open ? '▶' : '▶';
+  btn.childNodes[1].textContent = open ? ' Hide technical diff' : ' Show technical diff';
+}
+
+// ── Event handler ─────────────────────────────────────────────────────────────
 function handle(evt) {
   switch (evt.type) {
 
@@ -364,7 +732,7 @@ function handle(evt) {
 
     case 'scrape:done':
       step('scrape', 'done');
-      step('validate', evt.failureCount > 0 ? 'done' : 'done');
+      step('validate', 'done');
       if (evt.failureCount > 0) step('detect', 'running');
       else { step('detect', 'done'); step('heal', 'done'); step('patch', 'done'); }
       break;
@@ -372,10 +740,10 @@ function handle(evt) {
     case 'failure':
       step('detect', 'done');
       step('heal', 'running');
-      card('card-failure', 'Failure Detected', `
-        <div class="kv"><span class="kk">Field</span><span class="kv-code">${esc(evt.field)}</span></div>
-        <div class="kv"><span class="kk">Selector</span><span class="kv-bad">${esc(evt.selector)}</span></div>
-        <div class="kv"><span class="kk">Error</span><span class="kv-small">${esc(evt.error)}</span></div>
+      card('card-failure', '⚠ Something went wrong', `
+        <div class="kv"><span class="kk">What broke</span><span class="kv-code">${esc(evt.field)}</span></div>
+        <div class="kv"><span class="kk">Selector used</span><span class="kv-bad">${esc(evt.selector)}</span></div>
+        <div class="kv"><span class="kk">Reason</span><span class="kv-small">${esc(evt.error)}</span></div>
       `);
       break;
 
@@ -383,17 +751,17 @@ function handle(evt) {
       step('heal', 'done');
       const pct = Math.round(evt.proposal.confidence * 100);
       const fillColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
-      card('card-proposal', 'AI Proposal', `
+      const confLabel = pct >= 80 ? 'High confidence' : pct >= 50 ? 'Medium confidence' : 'Low confidence — review carefully';
+      card('card-proposal', '✦ AI found a fix', `
         <div class="selector-big">${esc(evt.proposal.new_selector)}</div>
         <div class="conf-wrap">
-          <div class="conf-labels"><span>Confidence</span><span class="conf-pct">${pct}%</span></div>
+          <div class="conf-labels"><span>${confLabel}</span><span class="conf-pct">${pct}%</span></div>
           <div class="conf-track"><div class="conf-fill" style="width:${pct}%;background:${fillColor}"></div></div>
         </div>
         <div class="diagnosis">${esc(evt.proposal.diagnosis)}</div>
         <div class="meta-tags">
           <span class="tag">${evt.latencyMs}ms</span>
-          <span class="tag">${evt.inputTokens + evt.outputTokens} tokens</span>
-          <span class="tag">llama-3.3-70b</span>
+          <span class="tag">${evt.inputTokens + evt.outputTokens} tokens used</span>
         </div>
       `);
       break;
@@ -402,28 +770,44 @@ function handle(evt) {
     case 'sandbox-result': {
       const ok = evt.validCount === evt.totalCount;
       step('patch', 'running');
-      card('card-sandbox', 'Sandbox Verified', `
+      card('card-sandbox', ok ? '✓ Fix was tested successfully' : '⚠ Fix was partially tested', `
         <div class="sandbox-row">
           <div class="sandbox-icon ${ok ? 'ok' : 'warn'}">${ok ? '✓' : '⚠'}</div>
           <div>
-            <div class="sandbox-strong" style="color:${ok ? 'var(--green)' : 'var(--amber)'}">${evt.validCount}/${evt.totalCount} valid records</div>
-            <div class="sandbox-sub">${ok ? 'Selector confirmed — safe to apply' : 'Partial match — review before applying'}</div>
+            <div class="sandbox-strong" style="color:${ok ? 'var(--green)' : 'var(--amber)'}">${evt.validCount} of ${evt.totalCount} items passed</div>
+            <div class="sandbox-sub">${ok ? 'The fix works — safe to apply.' : 'Only some items matched. Review before applying.'}</div>
           </div>
         </div>
       `);
       break;
     }
 
-    case 'patch':
+    case 'patch': {
       step('patch', 'done');
-      card('card-patch', 'Patch Ready', `
+      const patchFile = evt.outputPath ? evt.outputPath.split('/').slice(-2).join('/') : 'output/selectors.patch';
+      const applyCmd = `git apply ${patchFile}`;
+      showDiffPanel(evt.field, evt.patchContent, applyCmd);
+      card('card-patch', '✔ Fix is ready to apply', `
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+          The AI suggested a new selector. A patch file has been saved.
+          To apply it, run the command below in your terminal — or ask your developer to do it.
+        </div>
+        <div class="diff-toggle" onclick="toggleDiff(this)"><span class="diff-toggle-icon">▶</span> Show technical diff</div>
         <div class="diff-view">${renderDiff(evt.patchContent)}</div>
-        <div class="apply-box"><span class="apply-prompt">$</span> git apply output/selectors.patch</div>
+        <div class="apply-section">
+          <div class="apply-label">Apply this fix in your terminal:</div>
+          <div class="apply-box" onclick="copyCmd(this)" title="Click to copy">
+            <span class="apply-prompt">$</span> ${esc(applyCmd)}
+            <span class="copy-hint">click to copy</span>
+          </div>
+        </div>
       `);
       break;
+    }
 
     case 'done':
       setStatus('done', 'Done');
+      loadHistory();
       break;
 
     case 'error':
@@ -433,14 +817,46 @@ function handle(evt) {
   }
 }
 
+function copyCmd(el) {
+  const cmd = el.textContent.trim().replace(/click to copy$/, '').replace(/^\$\s*/, '').trim();
+  navigator.clipboard.writeText(cmd).then(() => {
+    const hint = el.querySelector('.copy-hint');
+    if (hint) { hint.textContent = 'copied!'; setTimeout(() => { hint.textContent = 'click to copy'; }, 2000); }
+  });
+}
+
+function showDiffPanel(field, patchContent, applyCmd) {
+  $('dpField').textContent = field ? `— ${field}` : '';
+  $('dpCmd').textContent = ` ${applyCmd}`;
+  $('diffPanelBody').innerHTML = renderDiff(patchContent);
+  $('diffPanel').classList.add('open');
+}
+
+function closeDiffPanel() {
+  $('diffPanel').classList.remove('open');
+}
+
+function copyDpCmd() {
+  const cmd = ($('dpCmd').textContent || '').trim();
+  const btn = document.querySelector('.dp-copy');
+  navigator.clipboard.writeText(cmd).then(() => {
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy command'; }, 2000); }
+  });
+}
+
+// ── Run ───────────────────────────────────────────────────────────────────────
 async function startRun() {
   reset();
   runBtn.disabled = true;
   setStatus('running', 'Running');
   step('scrape', 'running');
 
+  const providerId = providerSel.value;
+  const demo = demoToggle.checked && !demoToggle.disabled;
+  const url = `/api/run?providerId=${encodeURIComponent(providerId)}&demo=${demo}`;
+
   try {
-    const res = await fetch('/api/run');
+    const res = await fetch(url);
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = '';
@@ -463,6 +879,363 @@ async function startRun() {
 
   runBtn.disabled = false;
 }
+
+// ── History ───────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  const data = await fetch('/api/history').then(r => r.json());
+  const tab = $('tab-history');
+  tab.innerHTML = '';
+  if (!data.length) {
+    tab.innerHTML = `<div class="empty-state"><div class="empty-icon">🕑</div><div class="empty-title">No runs yet</div><div class="empty-sub">Each time you run the scraper, a summary will be saved here.</div></div>`;
+    return;
+  }
+  data.forEach(entry => {
+    const el = document.createElement('div');
+    const isDemo = entry.mode === 'demo';
+    const hasFixed = entry.proposals.length > 0;
+    el.className = `card card-history ${!hasFixed ? 'success' : ''} ${isDemo ? 'demo' : ''}`;
+
+    const validPct = entry.summary.scraped > 0
+      ? Math.round((entry.summary.valid / entry.summary.scraped) * 100)
+      : 0;
+    const summaryParts = [
+      `<strong>${entry.summary.scraped}</strong> scraped`,
+      `<strong class="ok">${entry.summary.valid}</strong> valid`,
+    ];
+    if (hasFixed) summaryParts.push(`<strong class="warn">${entry.proposals.length}</strong> field${entry.proposals.length > 1 ? 's' : ''} fixed`);
+
+    const propRows = entry.proposals.map(p => `
+      <div class="hist-prop">
+        <span class="prop-field">${esc(p.field)}</span> was fixed —
+        new selector: <span class="prop-selector">${esc(p.newSelector)}</span>
+        <span class="prop-conf">(${Math.round(p.confidence * 100)}% confident)</span>
+      </div>
+    `).join('');
+
+    el.innerHTML = `
+      <div class="card-head" onclick="toggleHistProposals(this)">
+        <div class="card-dot"></div>
+        <span>${esc(entry.providerName)}</span>
+        <span class="badge ${isDemo ? 'badge-demo' : 'badge-live'}" style="margin-left:6px">${isDemo ? 'Demo' : 'Live'}</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--dim)">${relativeTime(entry.timestamp)}</span>
+        ${hasFixed ? '<span style="font-size:11px;margin-left:8px">▸</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="hist-summary">${summaryParts.join(' &nbsp;·&nbsp; ')}</div>
+        <div class="hist-time">${new Date(entry.timestamp).toLocaleString()}</div>
+        ${hasFixed ? `<div class="hist-proposals">${propRows}</div>` : ''}
+      </div>
+    `;
+    tab.appendChild(el);
+  });
+}
+
+function toggleHistProposals(headEl) {
+  const body = headEl.nextElementSibling;
+  const props = body && body.querySelector('.hist-proposals');
+  if (!props) return;
+  const open = props.classList.toggle('open');
+  const arrow = headEl.querySelector('span:last-child');
+  if (arrow && (arrow.textContent === '▸' || arrow.textContent === '▾')) {
+    arrow.textContent = open ? '▾' : '▸';
+  }
+}
+
+// ── Config Drawer ─────────────────────────────────────────────────────────────
+function openDrawer() {
+  editingId = null;
+  renderDrawer();
+  $('drawer').classList.add('open');
+  $('drawerOverlay').classList.add('open');
+}
+
+function closeDrawer() {
+  $('drawer').classList.remove('open');
+  $('drawerOverlay').classList.remove('open');
+}
+
+function renderDrawer() {
+  const body = $('drawerBody');
+  const list = providers.map(p => `
+    <div class="provider-item" id="pi-${esc(p.id)}">
+      <div>
+        <div class="provider-item-name">${esc(p.name)}</div>
+        <div class="provider-item-url">${esc(p.url)}</div>
+      </div>
+      <div class="provider-item-actions">
+        <button class="btn-sm" onclick="startEdit('${esc(p.id)}')">Edit</button>
+        <button class="btn-sm danger" onclick="deleteProvider('${esc(p.id)}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+  body.innerHTML = `
+    <div id="providerList">${list}</div>
+    <button class="add-btn" id="addBtn" onclick="startAdd()">+ Add Provider</button>
+    <div class="pf" id="providerForm"></div>
+  `;
+}
+
+function startAdd() {
+  editingId = null;
+  $('addBtn').style.display = 'none';
+  renderProviderForm(null);
+}
+
+function startEdit(id) {
+  editingId = id;
+  const p = providers.find(x => x.id === id);
+  if (!p) return;
+  $('addBtn').style.display = 'none';
+  renderProviderForm(p);
+}
+
+function renderProviderForm(p) {
+  const form = $('providerForm');
+  form.classList.add('open');
+  const fields = p ? p.fields : [{ name: '', selector: '', type: 'text' }];
+  const demoBreaks = p ? p.demoBreaks : [];
+
+  form.innerHTML = `
+    <div class="pf-title">${p ? 'Edit Provider' : 'Add Provider'}</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="pf-name" placeholder="e.g. Books to Scrape" value="${esc(p ? p.name : '')}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL</label>
+      <input class="form-input" id="pf-url" placeholder="https://example.com/page-1.html" value="${esc(p ? p.url : '')}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Base URL <span style="color:var(--dim)">(for resolving relative links, optional)</span></label>
+      <input class="form-input" id="pf-baseUrl" placeholder="https://example.com/" value="${esc(p && p.baseUrl ? p.baseUrl : '')}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Article selector <span style="color:var(--dim)">(container element per item)</span></label>
+      <input class="form-input" id="pf-article" placeholder="e.g. article.product_pod" value="${esc(p ? p.articleSelector : '')}">
+    </div>
+
+    <div class="fields-header">
+      <span class="fields-label">Fields</span>
+      <button class="btn-sm" onclick="addFieldRow()">+ Field</button>
+    </div>
+    <div id="fieldRows">
+      ${fields.map((f, i) => fieldRowHtml(f, i)).join('')}
+    </div>
+
+    <div class="fields-header" style="margin-top:14px">
+      <span class="fields-label" style="color:var(--amber)">Demo Breaks <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim)">(broken selectors for demo mode)</span></span>
+      <button class="btn-sm" onclick="addDemoRow()">+ Break</button>
+    </div>
+    <div id="demoRows">
+      ${demoBreaks.map((b, i) => demoRowHtml(b, i)).join('')}
+    </div>
+
+    <div id="testResults"></div>
+
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveProvider()">Save</button>
+      <button class="btn-secondary" onclick="cancelForm()">Cancel</button>
+    </div>
+  `;
+}
+
+let fieldCount = 0;
+function fieldRowHtml(f, i) {
+  fieldCount = Math.max(fieldCount, i + 1);
+  return `
+    <div class="field-row" id="fr-${i}">
+      <input class="form-input" placeholder="Field name" value="${esc(f.name)}" data-fi="${i}" data-key="name">
+      <input class="form-input" placeholder="CSS selector" value="${esc(f.selector)}" data-fi="${i}" data-key="selector">
+      <select class="form-select" data-fi="${i}" data-key="type">
+        <option value="text" ${f.type==='text'?'selected':''}>text</option>
+        <option value="href" ${f.type==='href'?'selected':''}>href</option>
+        <option value="class" ${f.type==='class'?'selected':''}>class</option>
+      </select>
+      <button class="test-btn" onclick="testField(${i})" title="Test selector against the URL">Test</button>
+      <div></div>
+      <button class="del-field-btn" onclick="removeFieldRow(${i})" title="Remove">×</button>
+    </div>
+    <div id="tr-${i}"></div>
+  `;
+}
+
+let demoCount = 0;
+function demoRowHtml(b, i) {
+  demoCount = Math.max(demoCount, i + 1);
+  return `
+    <div class="field-row-demo" id="dr-${i}">
+      <span class="field-row-demo-label">Break</span>
+      <input class="form-input" placeholder="field name" value="${esc(b.field)}" data-di="${i}" data-key="field" style="margin-right:4px">
+      <span class="field-row-demo-label" style="margin-left:4px">→</span>
+      <input class="form-input" placeholder="broken selector" value="${esc(b.selector)}" data-di="${i}" data-key="selector">
+      <button class="del-field-btn" onclick="removeDemoRow(${i})" title="Remove">×</button>
+    </div>
+  `;
+}
+
+function addFieldRow() {
+  const rows = $('fieldRows');
+  const div = document.createElement('div');
+  div.innerHTML = fieldRowHtml({ name: '', selector: '', type: 'text' }, fieldCount);
+  rows.appendChild(div.firstElementChild);
+  rows.appendChild(div.lastElementChild);
+  fieldCount++;
+}
+
+function removeFieldRow(i) {
+  const row = $(`fr-${i}`);
+  const tr = $(`tr-${i}`);
+  if (row) row.remove();
+  if (tr) tr.remove();
+}
+
+function addDemoRow() {
+  const rows = $('demoRows');
+  const div = document.createElement('div');
+  div.innerHTML = demoRowHtml({ field: '', selector: '' }, demoCount);
+  rows.appendChild(div.firstElementChild);
+  demoCount++;
+}
+
+function removeDemoRow(i) {
+  const row = $(`dr-${i}`);
+  if (row) row.remove();
+}
+
+async function testField(i) {
+  const urlVal = $('pf-url').value.trim();
+  const articleSel = $('pf-article').value.trim();
+  if (!urlVal || !articleSel) {
+    showTestResult(i, false, 'Fill in URL and article selector first');
+    return;
+  }
+
+  const row = $(`fr-${i}`);
+  if (!row) return;
+  const selectorInput = row.querySelector('[data-key="selector"]');
+  const typeSelect    = row.querySelector('[data-key="type"]');
+  const btn = row.querySelector('.test-btn');
+  if (!selectorInput || !typeSelect || !btn) return;
+
+  const fieldSelector = selectorInput.value.trim();
+  const fieldType = typeSelect.value;
+  if (!fieldSelector) { showTestResult(i, false, 'Enter a selector to test'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const resp = await fetch('/api/test-selector', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: urlVal, articleSelector: articleSel, fieldSelector, fieldType }),
+    });
+    const data = await resp.json();
+    if (data.error) {
+      showTestResult(i, false, data.error);
+    } else {
+      const preview = data.samples.slice(0, 3).map(s => `"${s}"`).join(', ');
+      showTestResult(i, data.count > 0, `${data.count} match${data.count !== 1 ? 'es' : ''}${preview ? ' — ' + preview : ''}`);
+    }
+  } catch (e) {
+    showTestResult(i, false, String(e));
+  }
+  btn.disabled = false;
+  btn.textContent = 'Test';
+}
+
+function showTestResult(i, ok, msg) {
+  const tr = $(`tr-${i}`);
+  if (!tr) return;
+  tr.innerHTML = `<div class="test-result ${ok ? 'test-ok' : 'test-fail'}">${ok ? '✓' : '✕'} ${esc(msg)}</div>`;
+}
+
+function collectFormData() {
+  const name    = $('pf-name').value.trim();
+  const url     = $('pf-url').value.trim();
+  const baseUrl = $('pf-baseUrl').value.trim();
+  const articleSelector = $('pf-article').value.trim();
+
+  const fieldRows = document.querySelectorAll('#fieldRows .field-row');
+  const fields = [];
+  fieldRows.forEach(row => {
+    const nameInput = row.querySelector('[data-key="name"]');
+    const selInput  = row.querySelector('[data-key="selector"]');
+    const typeInput = row.querySelector('[data-key="type"]');
+    if (!nameInput || !selInput || !typeInput) return;
+    const n = nameInput.value.trim();
+    const s = selInput.value.trim();
+    if (n && s) fields.push({ name: n, selector: s, type: typeInput.value });
+  });
+
+  const demoRows = document.querySelectorAll('#demoRows .field-row-demo');
+  const demoBreaks = [];
+  demoRows.forEach(row => {
+    const fieldInput = row.querySelector('[data-key="field"]');
+    const selInput   = row.querySelector('[data-key="selector"]');
+    if (!fieldInput || !selInput) return;
+    const f = fieldInput.value.trim();
+    const s = selInput.value.trim();
+    if (f && s) demoBreaks.push({ field: f, selector: s });
+  });
+
+  return { name, url, baseUrl: baseUrl || undefined, articleSelector, fields, demoBreaks };
+}
+
+async function saveProvider() {
+  const data = collectFormData();
+  if (!data.name || !data.url || !data.articleSelector || data.fields.length === 0) {
+    alert('Name, URL, article selector, and at least one field are required.');
+    return;
+  }
+  try {
+    let result;
+    if (editingId) {
+      result = await fetch(`/api/providers/${encodeURIComponent(editingId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingId, ...data }),
+      });
+    } else {
+      result = await fetch('/api/providers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    }
+    if (!result.ok) {
+      const err = await result.json();
+      alert('Error: ' + JSON.stringify(err.error));
+      return;
+    }
+    await loadProviders();
+    renderDrawer();
+    $('addBtn').style.display = '';
+  } catch(e) {
+    alert('Request failed: ' + e);
+  }
+}
+
+async function deleteProvider(id) {
+  if (!confirm('Delete this provider?')) return;
+  await fetch(`/api/providers/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  await loadProviders();
+  renderDrawer();
+}
+
+function cancelForm() {
+  $('providerForm').classList.remove('open');
+  $('providerForm').innerHTML = '';
+  $('addBtn').style.display = '';
+  editingId = null;
+  fieldCount = 0;
+  demoCount = 0;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async () => {
+  await loadProviders();
+  await loadHistory();
+})();
 </script>
 </body>
 </html>
