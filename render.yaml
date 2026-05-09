@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: switchup-demo
+    runtime: node
+    buildCommand: npx playwright install chromium --with-deps && npm run build
+    startCommand: node dist/server.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: LANGFUSE_BASE_URL
+        value: https://cloud.langfuse.com
+      - key: MAX_BOOKS
+        value: 20
+      - key: GROQ_API_KEY
+        sync: false
+      - key: LANGFUSE_PUBLIC_KEY
+        sync: false
+      - key: LANGFUSE_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
