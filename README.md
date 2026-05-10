@@ -1,3 +1,5 @@
+<img width="1279" height="720" alt="switchup_scrapper" src="https://github.com/user-attachments/assets/8067916e-6eed-45ca-b690-29d1541af8ee" />
+
 # Self-Healing Scraper
 
 A working prototype of Switchup's core thesis: **Playwright fails → AI analyzes → generates fix → commits for review.**
