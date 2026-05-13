@@ -56,8 +56,8 @@ Do not add `console.log` inside `pipeline.ts`, `scrape.ts`, `heal.ts`, or any mo
 
 | File | What it owns |
 |---|---|
-| `src/config/selectors.ts` | **Single source of truth for all CSS selectors.** `WORKING_SELECTORS` is production. `BROKEN_SELECTORS` is the intentionally broken demo config (`price: "span.price-amount"`). Never scatter selectors elsewhere. |
-| `src/scraper/schema.ts` | Three Zod schemas: `RawBookSchema` (pre-transform strings), `BookSchema` (parsed types), `ScrapeFailureSchema` (failure context passed to healer). |
+| `src/config/providers.ts` | `ProviderSchema` and CRUD helpers (`loadProviders`, `getProvider`, etc.) backed by Neon. Providers are the single source of truth for selectors, fields, and demo breaks. |
+| `src/scraper/schema.ts` | Two Zod schemas: `GenericItemSchema` (`z.record(string, string)` — works for any provider's fields), `ScrapeFailureSchema` (failure context passed to healer). |
 | `src/healer/heal.ts` | Groq API call. `HealProposalSchema` validates the LLM response — treat model output as untrusted data, same as any external API. |
 | `src/healer/prompt.ts` | System prompt and per-failure user prompt builder. Change prompts here only. |
 | `src/diff/patch.ts` | Reads `selectors.ts` as raw source text, string-replaces the broken value, diffs with the `diff` package. Output is a `.patch` file applicable with `git apply`. |
@@ -81,16 +81,16 @@ npm run build            # compile to dist/
 ## Conventions
 
 ### Schema-first
-Every external boundary is validated with Zod at runtime — scraped data (`RawBookSchema`), LLM output (`HealProposalSchema`), failure context (`ScrapeFailureSchema`). TypeScript types alone are not sufficient at runtime boundaries.
+Every external boundary is validated with Zod at runtime — scraped data (`GenericItemSchema`), LLM output (`HealProposalSchema`), failure context (`ScrapeFailureSchema`), provider config (`ProviderSchema`). TypeScript types alone are not sufficient at runtime boundaries.
 
-### Selectors in one place
-All CSS selectors live in `src/config/selectors.ts` as a flat `Record<BookField, string>`. The healer patches exactly one key. This makes diffs a single-line change and `git apply` reliable.
+### Selectors live in the database
+All CSS selectors are stored as provider fields in Neon (loaded via `loadProviders()`). The healer patches exactly one field key. This makes diffs a single-line change and `git apply` reliable.
 
 ### DOM slice, not full page
-`scrapeBooks` captures `article.product_pod` outerHTML (~400 bytes) per article, not the full page HTML (~60KB). This is what gets sent to the LLM. Do not change this to send full-page HTML — it inflates token cost ~150× with no benefit.
+`scrapeItems` captures the outerHTML of each article element (~400 bytes) per article, not the full page HTML (~60KB). This is what gets sent to the LLM. Do not change this to send full-page HTML — it inflates token cost ~150× with no benefit.
 
 ### No auto-merge
-The patch file is a review artifact. The pipeline never writes directly to `src/config/selectors.ts`. A human runs `git apply output/selectors.patch` after reviewing the confidence score, diagnosis, and sandbox results.
+The patch file is a review artifact. The pipeline never writes directly to provider config. A human runs `git apply output/<provider-id>-selectors.patch` after reviewing the confidence score, diagnosis, and sandbox results.
 
 ### Zod v4 API
 This project uses Zod v4. Use `.issues` not `.errors` on `ZodError`. Use `z.union([...])` not `z.enum` for literal unions.
@@ -115,10 +115,10 @@ Copy `.env.example` to `.env` and fill in credentials before running anything.
 
 ## Adding a new provider / scrape target
 
-1. Define a new `SelectorConfig` in `src/config/selectors.ts` for the provider
-2. Update `BookField` type if the new source has different fields (also update `ScrapeFailureSchema` and `BookSchema`)
-3. Pass the new selectors and target URL into `runPipeline` via `PipelineOptions`
-4. The healer, diff, and observability layers need no changes — they operate on the failure context and selector config, not the specific target
+1. Insert a row into the `providers` table (via the web UI or `createProvider()`) with `id`, `name`, `url`, `articleSelector`, and the `fields` array
+2. Each field needs a `name`, `selector`, and `type` (`"text"` | `"href"` | `"class"`)
+3. Optionally add `demoBreaks` entries to simulate broken selectors in demo mode
+4. The healer, diff, and observability layers need no changes — they operate on the generic failure context and selector map, not the specific target
 
 ---
 

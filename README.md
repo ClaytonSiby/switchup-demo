@@ -11,13 +11,13 @@ Built as a "show, don't tell" demo. Every architectural choice mirrors the team'
 ## How it works
 
 ```text
-books.toscrape.com
+Any target URL
        │
        ▼
- Playwright scraper          ← typed CSS selector config
+ Playwright scraper          ← provider config loaded from Neon Postgres
        │
        ▼
-  Zod validation             ← RawBookSchema catches empty selectors
+  Zod validation             ← schema catches empty / mismatched selectors
        │
    (on failure)
        │
@@ -25,19 +25,19 @@ books.toscrape.com
   DOM slice capture          ← outerHTML of the article element (~400 bytes)
        │
        ▼
-  Gemini gemini-2.0-flash-lite    ← structured prompt → HealProposalSchema
+  Groq llama-3.3-70b         ← structured prompt → HealProposalSchema
        │
        ▼
   Sandbox retry              ← tests the proposed selector before committing
        │
        ▼
-  Unified diff               ← output/selectors.patch — humans review, not auto-merged
+  Unified diff               ← output/*.patch — humans review, not auto-merged
        │
        ▼
   Langfuse trace             ← prompts, latencies, token usage, confidence scores
 ```
 
-The broken selector (`span.price-amount`) is intentional — it mirrors what happens when a provider redesigns their page. The healer finds the real selector (`p.price_color`), sandboxes it against all 20 books, then emits a patch with a "tested: 20/20 valid records" annotation.
+Providers are configured at runtime — no code changes needed to add a new scrape target. The healer, diff, and observability layers are provider-agnostic.
 
 ---
 
@@ -46,10 +46,11 @@ The broken selector (`span.price-amount`) is intentional — it mirrors what hap
 | Switchup bet | How it shows up here |
 | --- | --- |
 | TypeScript + Zod for runtime chaos | `BookSchema` validates scraped data; `HealProposalSchema` validates the LLM's reply |
-| Playwright for API-less providers | Real browser scraping with a typed selector config |
-| AI self-healing scripts | `src/healer/heal.ts` — Gemini JSON mode, schema-validated output |
+| Playwright for API-less providers | Real browser scraping — JS-rendered pages work out of the box |
+| AI self-healing scripts | `src/healer/heal.ts` — Groq JSON mode, schema-validated output |
+| Neon Postgres for persistence | Providers survive server restarts; add targets via the UI, not config files |
 | Langfuse observability | Every scrape and heal attempt is traced with prompts, latencies, and token counts |
-| Schema-driven everything | Selectors live in one typed config; the healer patches that one place |
+| Schema-driven everything | Selectors live in one typed provider config; the healer patches that one place |
 
 ---
 
@@ -64,61 +65,53 @@ npx playwright install chromium
 
 # Configure environment
 cp .env.example .env
-# Fill in GEMINI_API_KEY and Langfuse credentials
+# Fill in credentials (see below)
+
+# Create the providers table and seed initial data
+npm run db:migrate
 ```
 
 ### Environment variables
 
 ```env
-GEMINI_API_KEY=AIza...
+GROQ_API_KEY=gsk_...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
-BROKEN_SELECTORS=true
+DATABASE_URL=postgresql://...
 MAX_BOOKS=20
 ```
 
-Get your free Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+| Variable | Where to get it |
+| --- | --- |
+| `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) — free tier |
+| `LANGFUSE_*` | [cloud.langfuse.com](https://cloud.langfuse.com) |
+| `DATABASE_URL` | [console.neon.tech](https://console.neon.tech) — free tier |
 
 ---
 
-## Running the demo
+## Running
 
-### Full demo (broken selector → heal → patch)
+### Web dashboard
+
+```bash
+npm run serve
+```
+
+Opens at `http://localhost:3000`. Add providers, run the pipeline, and inspect results — all from the UI.
+
+### CLI demo (broken selector → heal → patch)
 
 ```bash
 npm run demo
 ```
 
-Expected output:
+Runs the Books to Scrape provider with an intentionally broken selector (`span.price-amount`). The healer finds the correct one (`p.price_color`), sandboxes it, and writes a patch.
 
-```text
-[demo] Starting self-healing scraper (demo=true, broken=true)
-[scraper] Found 20 articles on https://books.toscrape.com/catalogue/page-1.html
-[scraper] 0 valid books, 20 failures
-[healer] 20 failures detected across 1 field(s): price
-[healer] Calling Gemini gemini-2.0-flash-lite for field "price"...
-[healer] Proposal: "p.price_color" (confidence: 0.97)
-[healer] Diagnosis: span.price-amount does not exist; price is rendered in p.price_color
-[healer] Latency: 820ms | Tokens: 892in / 87out
-[sandbox] Retrying with proposed selector "p.price_color"...
-[sandbox] 20/20 books valid with proposed selector
-[diff] Patch written to: output/selectors.patch
-[diff] Apply with: git apply output/selectors.patch
-[langfuse] Events flushed
-```
-
-### Apply the patch and verify
+### CLI scrape (working selectors)
 
 ```bash
-git apply output/selectors.patch
-BROKEN_SELECTORS=false npm run scrape
-```
-
-### Working selectors (no heal needed)
-
-```bash
-BROKEN_SELECTORS=false npm run scrape
+npm run scrape
 ```
 
 ---
@@ -128,52 +121,71 @@ BROKEN_SELECTORS=false npm run scrape
 ```text
 src/
 ├── config/
-│   └── selectors.ts          # ONE source of truth for all CSS selectors
+│   └── providers.ts          # Provider schema + Neon DB read/write functions
+├── db/
+│   ├── index.ts              # Neon client
+│   └── migrate.ts            # Table creation + seed from providers.json
 ├── scraper/
 │   ├── schema.ts             # RawBookSchema, BookSchema, ScrapeFailureSchema
 │   └── scrape.ts             # Playwright scraping logic
 ├── healer/
 │   ├── prompt.ts             # System prompt + per-failure user prompt builder
-│   └── heal.ts               # Gemini call + HealProposalSchema validation
+│   └── heal.ts               # Groq call + HealProposalSchema validation
 ├── diff/
 │   └── patch.ts              # Unified diff generator
 ├── observability/
 │   └── langfuse.ts           # Langfuse client + trace/span/generation helpers
-└── index.ts                  # Orchestrator
+├── pipeline.ts               # Orchestrator — single source of truth for run logic
+├── server.ts                 # Express server + SSE — web dashboard backend
+└── index.ts                  # CLI entry point
+config/
+└── providers.json            # Seed data only — gitignored after first migrate
 output/
-└── selectors.patch           # Generated patch (gitignored)
+└── *.patch                   # Generated patches (gitignored)
+public/
+└── index.html                # Single-file dashboard — no build step, no framework
 ```
 
 ---
 
 ## Key design decisions
 
-**Selectors live in one typed record.** `SelectorConfig = Record<BookField, string>`. The healer proposes `{ field, new_selector }` and the patch generator does a targeted string replace on that one key — no scattered selector strings, no AST manipulation, clean one-line diffs.
+**Providers live in Neon, not config files.** Adding a scrape target is a UI action, not a deploy. Provider data survives server restarts, and multiple instances share the same state.
 
-**`domSlice` is the article element, not the full page.** Sending 60KB of HTML to Gemini is wasteful. The enclosing `article.product_pod` element (~400 bytes) contains every candidate selector the model needs. Token cost drops by ~150×.
+**`domSlice` is the article element, not the full page.** Sending 60KB of HTML to the LLM is wasteful. The enclosing article element (~400 bytes) contains every candidate selector the model needs. Token cost drops ~150×.
 
-**Gemini JSON mode.** Setting `responseMimeType: "application/json"` forces structured output — no markdown fences, no prose, just the object. The response is still validated through `HealProposalSchema` (Zod) because the model is untrusted at runtime.
+**Groq JSON mode.** The response is forced into a structured schema via `HealProposalSchema` (Zod) — model output is treated as untrusted data, same as any external API.
 
-**No auto-merge.** The patch file is a review artifact, not an action. Humans apply it with `git apply` after inspecting the diagnosis and confidence score. This is deliberate — automated selector changes without review are how scrapers silently break.
+**No auto-merge.** The patch file is a review artifact, not an action. Humans apply it with `git apply` after inspecting the diagnosis and confidence score. Automated selector changes without review are how scrapers silently break.
 
-**Sandbox retry before the diff.** The proposed selector is tested against all 20 books before the patch is written. The patch header carries `# Tested: 20 valid records` so the reviewer knows it's not just a guess.
+**Sandbox retry before the diff.** The proposed selector is tested against live data before the patch is written. The patch header carries a `Tested: N valid records` annotation so the reviewer knows it's not a guess.
+
+**Single `runPipeline` function.** Both the CLI and the web server call the same `runPipeline(opts, emit)`. Neither entry point contains business logic — they only differ in how they handle events (console vs. SSE).
 
 ---
 
 ## Observability
 
-Every run produces a Langfuse trace visible at [cloud.langfuse.com](https://cloud.langfuse.com):
+Every run produces a Langfuse trace at [cloud.langfuse.com](https://cloud.langfuse.com):
 
-- Top-level `scrape-run` trace with `brokenSelectors` metadata
-- `playwright-scrape` span with book count and failure count
-- `gemini-heal` generation with full prompt, response, token usage, and confidence score
+- Top-level `scrape-run` trace with provider metadata
+- `playwright-scrape` span with article count and failure count
+- `groq-heal` generation with full prompt, response, token usage, and confidence score
+
+---
+
+## Deployment
+
+Deployed on [Render](https://render.com). Configuration is in `render.yaml`.
+
+Required env vars in the Render dashboard: `GROQ_API_KEY`, `LANGFUSE_*`, `DATABASE_URL`, `PLAYWRIGHT_BROWSERS_PATH`.
 
 ---
 
 ## Verification checklist
 
 - [ ] `npm run typecheck` — zero errors
-- [ ] `BROKEN_SELECTORS=false npm run scrape` — 20 books, 0 failures, no Gemini call
-- [ ] `npm run demo` — 20 failures → heal → sandbox 20/20 → patch written → Langfuse flushed
-- [ ] `git apply --check output/selectors.patch` — patch applies cleanly
-- [ ] Langfuse dashboard shows trace with generation event including token counts
+- [ ] `npm run db:migrate` — table created, providers seeded
+- [ ] `npm run scrape` — valid items scraped, 0 failures, no healer call
+- [ ] `npm run demo` — failures detected → heal → sandbox → patch written → Langfuse flushed
+- [ ] `npm run serve` → add a provider via UI → restart server → provider still visible
